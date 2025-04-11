@@ -138,7 +138,7 @@ export default function TravelEntryScreen() {
                     {({ handleChange, handleSubmit, values, errors }) => (
                         <View>
                             <TextInput
-                                placeholder="Enter Photo Title"
+                                placeholder="Give your photo a name!"
                                 placeholderTextColor={isDarkMode ? '#ddd' : '#000'}
                                 onChangeText={handleChange('title')}
                                 value={values.title}

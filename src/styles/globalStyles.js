@@ -17,11 +17,6 @@ export const getGlobalStyles = (isDarkMode) =>
       alignItems: 'center',
       borderRadius: 8,
     },
-    headerText: {
-      fontSize: 22,
-      fontWeight: 'bold',
-      color: isDarkMode ? '#003049' : '#780000',
-    },
     text: {
       fontSize: 16,
       color: isDarkMode ? '#ffffff' : '#000000',
@@ -33,7 +28,7 @@ export const getGlobalStyles = (isDarkMode) =>
       marginBottom: 10,
     },
     title: {
-      fontSize: 20,
+      fontSize: 30,
       fontWeight: 'bold',
       color: isDarkMode ? '#e63946' : '#780000',
       flex: 1, // take up available space
@@ -86,7 +81,7 @@ export const getGlobalStyles = (isDarkMode) =>
     addButton: {
       fontSize: 20,
       color: '#fff',
-      backgroundColor: isDarkMode ? '#003049' : '#780000',
+      backgroundColor: isDarkMode ? '#e63946' : '#780000',
       textAlign: 'center',
       justifyContent: 'center',
       alignItems: 'center',
@@ -124,5 +119,6 @@ export const getGlobalStyles = (isDarkMode) =>
       borderWidth: 2,       // Set border width
       borderRadius: 10,     // Border radius for rounded corners
       textAlign: 'center',
+      margin: 10,
     }
   });

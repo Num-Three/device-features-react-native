@@ -45,12 +45,11 @@ export default function HomeScreen() {
     const renderItem = ({ item }: { item: TravelEntry }) => (
         <View style={styles.entry}>
             <View style={styles.titleRow}>
-                <Feather style={[styles.feather, styles.featherTitle]} name="aperture" size={24} />
                 <Text style={styles.title}>{item.title}</Text>
                 <TouchableOpacity
                     onPress={() => handleRemove(item.id)}>
 
-                    <Feather style={styles.titleSide} name="minus" />
+                    <Feather style={[styles.titleSide, styles.featherButton]} name="minus" />
                 </TouchableOpacity>
             </View>
             <View style={styles.divider} />
