@@ -24,10 +24,17 @@ interface LocationCoords {
     longitude: number;
 }
 
+Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+        shouldShowAlert: true,
+        shouldPlaySound: true,
+        shouldSetBadge: false,
+    }),
+});
+
 export default function TravelEntryScreen() {
     const [image, setImageUri] = useState<string | null>(null);
     const [location, setLocation] = useState<LocationCoords | null>(null);
-    const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const [address, setAddress] = useState<string | null>(null);
     const navigation = useNavigation();
     const { isDarkMode } = useGlobalContext();
@@ -39,6 +46,7 @@ export default function TravelEntryScreen() {
         return () => {
             setImageUri(null);
             setAddress(null);
+            setLocation(null);
         };
     }, []);
 
@@ -51,7 +59,7 @@ export default function TravelEntryScreen() {
     const requestLocationPermissions = async () => {
         const { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') {
-            setErrorMsg('Permission to access location was denied.');
+            alert('Permission to access location was denied.');
         }
     };
 
@@ -73,7 +81,7 @@ export default function TravelEntryScreen() {
                 )
             );
         } catch (error) {
-            setErrorMsg('Failed to fetch address');
+            alert('Failed to fetch address');
         }
     };
 
@@ -125,50 +133,54 @@ export default function TravelEntryScreen() {
     };
 
     const sendNotification = async (title: string, body: string) => {
+        const { granted } = await Notifications.getPermissionsAsync();
+        if (!granted) {
+            alert('Please grant notification permissions');
+            return;
+        }
+
         await Notifications.scheduleNotificationAsync({
             content: {
                 title: title,
                 body: body,
                 sound: 'default',
             },
-            trigger: null,
+            trigger: null, // Immediate notification
         });
     };
 
-    async function registerForPushNotificationsAsync() {
-        let token;
-
-        if (Platform.OS === 'android') {
-            await Notifications.setNotificationChannelAsync('default', {
-                name: 'default',
-                importance: Notifications.AndroidImportance.MAX,
-                vibrationPattern: [0, 250, 250, 250],
-                lightColor: '#FF231F7C',
-            });
+    const requestPushPermissions = async () => {
+        const { granted: existingPermission, status } = await Notifications.getPermissionsAsync();
+        console.log('Existing Notification Permission:', existingPermission, status);
+        if (!existingPermission) {
+            const { granted, status: newStatus } = await Notifications.requestPermissionsAsync();
+            console.log('Requested Notification Permission:', granted, newStatus);
+            if (!granted) {
+                alert('Notification permission not granted');
+            }
         }
+    };
 
+    async function registerForPushNotificationsAsync() {
         if (!Device.isDevice) {
             alert('Must use a physical device for push notifications');
             return;
         }
-
-        const { granted: existingPermission } = await Notifications.getPermissionsAsync();
-        let finalPermission = existingPermission;
-
-        if (!existingPermission) {
-            const { granted: newPermission } = await Notifications.requestPermissionsAsync();
-            finalPermission = newPermission;
-        }
-
-        if (!finalPermission) {
+    
+        // Request permissions
+        await requestPushPermissions();
+    
+        // Get the push notification token
+        const token = await Notifications.getExpoPushTokenAsync();
+    
+        if (!token) {
             alert('Failed to get push token for push notifications!');
             return;
         }
-
-        token = await Notifications.getExpoPushTokenAsync();
+    
         console.log('Expo Push Token:', token);
         return token;
-    }
+    }    
 
     return (
         <View style={[styles.container, styles.entryContainer]}>
