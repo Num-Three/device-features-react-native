@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Image, Text, TextInput, TouchableOpacity, Alert, Platform } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
-import * as Notifications from 'expo-notifications';
-import * as Device from 'expo-device';
+
 import { saveEntry } from '../utils/storage';
 import uuid from 'react-native-uuid';
 import { useNavigation } from '@react-navigation/native';
@@ -12,6 +11,7 @@ import { useGlobalContext } from '../context/GlobalContext';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
 import { Feather } from '@expo/vector-icons';
+import { sendNotification, registerForPushNotificationsAsync } from '../utils/notifications';
 
 const validationSchema = Yup.object().shape({
     title: Yup.string()
@@ -23,14 +23,6 @@ interface LocationCoords {
     latitude: number;
     longitude: number;
 }
-
-Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-        shouldShowAlert: true,
-        shouldPlaySound: true,
-        shouldSetBadge: false,
-    }),
-});
 
 export default function TravelEntryScreen() {
     const [image, setImageUri] = useState<string | null>(null);
@@ -132,56 +124,6 @@ export default function TravelEntryScreen() {
         }
     };
 
-    const sendNotification = async (title: string, body: string) => {
-        const { granted } = await Notifications.getPermissionsAsync();
-        if (!granted) {
-            alert('Please grant notification permissions');
-            return;
-        }
-
-        await Notifications.scheduleNotificationAsync({
-            content: {
-                title: title,
-                body: body,
-                sound: 'default',
-            },
-            trigger: null, // Immediate notification
-        });
-    };
-
-    const requestPushPermissions = async () => {
-        const { granted: existingPermission, status } = await Notifications.getPermissionsAsync();
-        console.log('Existing Notification Permission:', existingPermission, status);
-        if (!existingPermission) {
-            const { granted, status: newStatus } = await Notifications.requestPermissionsAsync();
-            console.log('Requested Notification Permission:', granted, newStatus);
-            if (!granted) {
-                alert('Notification permission not granted');
-            }
-        }
-    };
-
-    async function registerForPushNotificationsAsync() {
-        if (!Device.isDevice) {
-            alert('Must use a physical device for push notifications');
-            return;
-        }
-    
-        // Request permissions
-        await requestPushPermissions();
-    
-        // Get the push notification token
-        const token = await Notifications.getExpoPushTokenAsync();
-    
-        if (!token) {
-            alert('Failed to get push token for push notifications!');
-            return;
-        }
-    
-        console.log('Expo Push Token:', token);
-        return token;
-    }    
-
     return (
         <View style={[styles.container, styles.entryContainer]}>
             {image && address ? <Image source={{ uri: image }} style={styles.image} /> : <Text style={styles.emptyText}>No Photo Taken</Text>}
@@ -203,7 +145,10 @@ export default function TravelEntryScreen() {
                                 style={styles.formInput}
                             />
                             {errors.title && <Text style={styles.error}>{errors.title}</Text>}
-                            {address && image ? <Text style={styles.address}>{address}</Text> : <Text style={styles.emptyText}>No Address Given</Text>}
+                            {address && image ? <Text style={styles.address}>
+                                <Feather style={styles.feather} name="map-pin" />
+                                {address}
+                            </Text> : <Text style={styles.emptyText}>No Address Given</Text>}
 
                             <TouchableOpacity style={styles.entryContainer} onPress={() => {
                                 if (Object.keys(errors).length > 0) {

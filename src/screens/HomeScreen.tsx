@@ -5,6 +5,7 @@ import { getGlobalStyles } from '../styles/globalStyles';
 import { getEntries, removeEntry } from '../utils/storage';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons'; // Moon icon
+import { sendNotification, registerForPushNotificationsAsync } from '../utils/notifications';
 
 interface TravelEntry {
     id: string;
@@ -21,6 +22,10 @@ export default function HomeScreen() {
     const navigation = useNavigation();
 
     useEffect(() => {
+        registerForPushNotificationsAsync();
+    }, []);
+
+    useEffect(() => {
         if (isFocused) {
             loadEntries();
         }
@@ -33,6 +38,7 @@ export default function HomeScreen() {
 
     const handleRemove = async (id: string) => {
         await removeEntry(id);
+        await sendNotification('Removed Entry!', 'You removed a travel entry from your diary!')
         loadEntries();
     };
 

@@ -7,7 +7,6 @@ import Header from './src/components/Header';
 export default function App() {
   return (
     <GlobalProvider>
-
       <SafeAreaView style={{ flex: 1, marginTop: StatusBar.currentHeight }}>
         <Header />
 
